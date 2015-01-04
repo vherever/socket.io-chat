@@ -1,0 +1,78 @@
+<html>
+<head>
+    <title>Chat app using Node.js, Socket.io and jQuery</title>
+    <script src="/socket.io/socket.io.js"></script>
+    <script src="http://code.jquery.com/jquery-1.10.2.js"></script>
+    <script>
+
+                //dataField() is for disabling form after nick was chosen
+            	function dataField(f) {
+        		  
+        		
+                var name,
+                    socket = io.connect("http://localhost:3000");
+                $(function () {
+                    name = f.appliedName.value;
+                    $("#send").click(function () {
+                        socket.emit("message", {
+                            "name": name,
+                            "msg": $("#msg").val()
+                        });
+                    });
+                    
+                    socket.on("message", function (data) {
+                        //append the message from the server to the message box
+                        $("#messages").append("<strong>" + data.name + "</strong>: " + data.msg + "<br/>");
+                    });
+                    $("#msg").on("keyup", function (event) {
+                        socket.emit("sender", {
+                            name: name
+                        });
+                    });
+                    socket.on("sender", function (data) {
+                        $("#status").html(data.name + " is typing...");
+                        setTimeout(function () {
+                            $("#status").html('');
+                        }, 3000);
+                    });
+                });
+        };	
+    </script>
+</head>
+<body>
+    <!--Input form for the nickname-->
+    <form id="form">
+        <h3>Please, chose your name:</h3>
+    	<input type="text" name="appliedName" id="nickname" />
+    	<input type="button" value="OK" onClick="dataField(this.form)" class="sendButton" />
+    </form>
+
+    <!--when input form is empty, disable submit button-->
+    <script>
+    	$(document).ready(function(){
+		    $('.sendButton').attr('disabled',true);
+		    
+		    $('#nickname').keyup(function(){
+		        if($(this).val().length !==0){
+		            $('.sendButton').attr('disabled', false);
+		        }
+		        else
+		        {
+		            $('.sendButton').attr('disabled', true);        
+		        }
+		    });
+		});
+
+    //hide input form after user has entered a name
+		$('input:button').click(function(){
+		 $('#form').hide();
+		});
+    </script>
+
+    <div id="messages"></div>
+    <input type="text" id="msg" onfocus="this.value=''" />
+    <input type="submit" id="send" value="send" />
+    <br/>
+    <div id="status"></div>
+</body>
+</html>
